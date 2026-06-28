@@ -1,117 +1,47 @@
-async function loadProduct(id) {
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Arons BrickBot</title>
 
-    const res = await fetch(`/api/search/${id}`);
-    const json = await res.json();
+    <link rel="stylesheet" href="style.css"/>
+</head>
 
-    const info = document.getElementById("info");
-    const title = document.getElementById("title");
-    const image = document.getElementById("image");
-    const priceSetdb = document.getElementById("price-setdb");
-    const priceBluebrixx = document.getElementById("price-bluebrixx");
-    const status = document.getElementById("status");
-    const input = document.getElementById("articleInput");
+<body>
 
-    if (!json.success) {
-        info.innerHTML = "❌ Produkt nicht gefunden";
-        return;
-    }
+<div class="container">
 
-    const data = json.data;
+    <div class="card">
 
-    /* =========================
-       BASIC DATA
-    ========================= */
+        <h1 id="title">Arons BrickBot</h1>
 
-    title.innerText = data.name ?? "-";
+        <input id="articleInput"
+               type="text"
+               placeholder="Artikelnummer eingeben (z.B. 108712)" />
 
-    image.src = data.image
-        ? `/api/image?url=${encodeURIComponent(data.image)}`
-        : "";
+        <button onclick="loadProduct(document.getElementById('articleInput').value)">
+            🔍 Suchen
+        </button>
 
-    priceSetdb.innerText =
-        data.setdb?.price ? `${data.setdb.price} €` : "-";
+        <div style="margin-top:20px;">
+            <img id="image" />
+        </div>
 
-    priceBluebrixx.innerText =
-        data.bluebrixx?.price ? `${data.bluebrixx.price} €` : "-";
+        <div style="margin-top:20px;">
+            <div>SetDB: <b id="price-setdb">-</b></div>
+            <div>BlueBrixx: <b id="price-bluebrixx">-</b></div>
+            <div>Status: <b id="status">-</b></div>
+        </div>
 
-    status.innerText =
-        data.bluebrixx?.status ?? "-";
-
-    /* =========================
-       EXTRA INFO
-    ========================= */
-
-    const extraInfo = `
-    <div class="info-grid">
-
-        <div>EAN: <b>${data.ean ?? "-"}</b></div>
-        <div>Teileanzahl: <b>${data.parts ?? "-"}</b></div>
-        <div>Minifiguren: <b>${data.minifigures ?? "-"}</b></div>
-        <div>Altersempfehlung: <b>${data.age ?? "-"}</b></div>
-        <div>Maße: <b>${data.dimensions ?? "-"}</b></div>
-        <div>Gewicht: <b>${data.weight ?? "-"}</b></div>
-        <div>Erscheinungsjahr: <b>${data.year ?? "-"}</b></div>
-        <div>Themenwelt/Serie: <b>${data.theme ?? "-"}</b></div>
-        <div>Bewertung: <b>${data.rating ?? "-"}</b></div>
-
-        <div>Preis/Stein: <b>${data.pricePerPart ?? "-"}</b></div>
+        <div id="info" style="margin-top:20px;"></div>
 
     </div>
-    `;
 
-    /* =========================
-       BUTTONS
-    ========================= */
+</div>
 
-    const buttons = `
-    <div class="button-row">
+<!-- 🔥 WICHTIG: APP.JS MUSS LADEN -->
+<script src="app.js"></script>
 
-        ${data.setdb?.url ? `
-            <a class="btn primary" target="_blank"
-               href="${data.setdb.url}">
-               📚 In SetDB öffnen
-            </a>
-        ` : ""}
-
-        ${data.bluebrixx?.url ? `
-            <a class="btn secondary" target="_blank"
-               href="${data.bluebrixx.url}">
-               🛒 Bei BlueBrixx öffnen
-            </a>
-        ` : ""}
-
-    </div>
-    `;
-
-    /* =========================
-       RENDER
-    ========================= */
-
-    info.innerHTML = extraInfo + buttons;
-
-    /* =========================
-       INPUT CLEANUP (BONUS)
-    ========================= */
-
-    if (input) {
-        input.value = "";
-    }
-}
-
-/* =========================
-   ENTER KEY SUPPORT (BONUS FIX)
-========================= */
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    const input = document.getElementById("articleInput");
-
-    if (!input) return;
-
-    input.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-            loadProduct(input.value);
-        }
-    });
-
-});
+</body>
+</html>
