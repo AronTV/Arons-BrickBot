@@ -1,14 +1,23 @@
+
+function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.innerText = value;
+}
+
+function setImg(id, src) {
+    const el = document.getElementById(id);
+    if (el) el.src = src;
+}
+
+/* =========================
+   MAIN FUNCTION
+========================= */
+
 async function loadProduct(id) {
 
     console.log("👉 loadProduct gestartet:", id);
 
     const info = document.getElementById("info");
-    const title = document.getElementById("title");
-    const image = document.getElementById("image");
-    const priceSetdb = document.getElementById("price-setdb");
-    const priceBluebrixx = document.getElementById("price-bluebrixx");
-    const status = document.getElementById("status");
-    const input = document.getElementById("articleInput");
 
     let json;
 
@@ -24,7 +33,7 @@ async function loadProduct(id) {
         }
 
     } catch (err) {
-        console.error("FETCH ERROR:", err);
+        console.error(err);
         info.innerHTML = "❌ Server nicht erreichbar";
         return;
     }
@@ -39,30 +48,35 @@ async function loadProduct(id) {
     console.log("DATA:", data);
 
     /* =========================
-       BASIC UI
+       BASIC UI SAFE
     ========================= */
 
-    title.innerText = data.name || "-";
+    setText("title", data.name || "-");
 
-    image.src = data.image
-        ? `/api/image?url=${encodeURIComponent(data.image)}`
-        : "";
+    setImg(
+        "image",
+        data.image ? `/api/image?url=${encodeURIComponent(data.image)}` : ""
+    );
 
-    priceSetdb.innerText =
-        data.setdb?.price ? `${data.setdb.price} €` : "-";
+    setText("price-setdb",
+        data.setdb?.price ? `${data.setdb.price} €` : "-"
+    );
 
-    priceBluebrixx.innerText =
-        data.bluebrixx?.price ? `${data.bluebrixx.price} €` : "-";
+    setText("price-bluebrixx",
+        data.bluebrixx?.price ? `${data.bluebrixx.price} €` : "-"
+    );
 
-    status.innerText =
-        data.bluebrixx?.status || "-";
+    setText("status",
+        data.bluebrixx?.status || "-"
+    );
 
     /* =========================
-       EXTRA INFO
+       INFO GRID
     ========================= */
 
     const extraInfo = `
         <div class="info-grid">
+
             <div>EAN: <b>${data.ean || "-"}</b></div>
             <div>Teile: <b>${data.parts || "-"}</b></div>
             <div>Minifiguren: <b>${data.minifigures || "-"}</b></div>
@@ -73,11 +87,12 @@ async function loadProduct(id) {
             <div>Thema: <b>${data.theme || "-"}</b></div>
             <div>Bewertung: <b>${data.rating || "-"}</b></div>
             <div>Preis/Stein: <b>${data.pricePerPart || "-"}</b></div>
+
         </div>
     `;
 
     /* =========================
-       BUTTONS
+       BUTTONS SAFE
     ========================= */
 
     const buttons = `
@@ -103,29 +118,24 @@ async function loadProduct(id) {
     ========================= */
 
     info.innerHTML = extraInfo + buttons;
-
-    if (input) input.value = "";
 }
 
 /* =========================
-   DARK MODE TOGGLE
+   DARK MODE
 ========================= */
 
 function toggleTheme() {
     const isLight = document.body.classList.toggle("light");
-
     localStorage.setItem("theme", isLight ? "light" : "dark");
 }
 
 /* =========================
-   INIT THEME ON LOAD
+   INIT
 ========================= */
 
 document.addEventListener("DOMContentLoaded", () => {
 
-    const savedTheme = localStorage.getItem("theme");
-
-    if (savedTheme === "light") {
+    if (localStorage.getItem("theme") === "light") {
         document.body.classList.add("light");
     }
 

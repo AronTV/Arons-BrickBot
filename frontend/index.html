@@ -14,53 +14,31 @@
 
     <div class="card">
 
-        <!-- APP HEADER (Mini Upgrade #2) -->
+        <!-- HEADER -->
         <div class="topbar">
-
             <div>
                 <h2 style="margin:0;">🧱 Arons BrickBot</h2>
                 <small style="opacity:0.7;">Set Preis & Vergleich Tool</small>
             </div>
 
-            <button onclick="toggleTheme()">
-                🌓 Theme
-            </button>
-
+            <button onclick="toggleTheme()">🌓 Theme</button>
         </div>
 
         <hr style="opacity:0.1;">
 
-        <!-- SEARCH BAR -->
-        <div style="display:flex; gap:10px; margin-top:10px;">
-
-            <input id="articleInput"
-                   type="text"
-                   placeholder="Artikelnummer (z.B. 108712)">
-
+        <!-- SEARCH -->
+        <div style="display:flex; gap:10px;">
+            <input id="articleInput" type="text" placeholder="Artikelnummer (z.B. 108712)">
             <button onclick="loadProduct(document.getElementById('articleInput').value)">
                 🔍
             </button>
-
         </div>
 
         <!-- PRICE BOX -->
         <div class="price-box">
-
-            <div>
-                SetDB<br>
-                <b id="price-setdb">-</b>
-            </div>
-
-            <div>
-                BlueBrixx<br>
-                <b id="price-bluebrixx">-</b>
-            </div>
-
-            <div>
-                Status<br>
-                <b id="status">-</b>
-            </div>
-
+            <div>SetDB<br><b id="price-setdb">-</b></div>
+            <div>BlueBrixx<br><b id="price-bluebrixx">-</b></div>
+            <div>Status<br><b id="status">-</b></div>
         </div>
 
         <!-- IMAGE -->
@@ -68,8 +46,11 @@
             <img id="image" style="max-width:400px; border-radius:12px;">
         </div>
 
-        <!-- INFO AREA -->
-        <div id="info" style="margin-top:20px;"></div>
+        <!-- BASIC TITLE (optional duplicate safe) -->
+        <h3 id="title" style="margin-top:15px;">-</h3>
+
+        <!-- INFO GRID -->
+        <div id="info" style="margin-top:15px;"></div>
 
     </div>
 
