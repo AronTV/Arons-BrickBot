@@ -1,146 +1,53 @@
-document.addEventListener("DOMContentLoaded", () => {
+async function loadProduct(id) {
 
-    const input = document.getElementById("input");
-    const btn = document.getElementById("btn");
-    const result = document.getElementById("result");
+    const res = await fetch(`/api/search/${id}`);
+    const json = await res.json();
 
-    // -------------------------
-    // FORMAT HELPER
-    // -------------------------
-    function formatPrice(value) {
-        if (value === null || value === undefined) return "-";
-        return `${Number(value).toFixed(2)} €`;
-    }
+    if (!json.success) return;
 
-    function getStatusClass(status) {
-        switch (status) {
-            case "available": return "🟢 Verfügbar";
-            case "soon": return "🟡 Bald verfügbar";
-            case "out": return "🔴 Ausverkauft";
-            default: return "⚪ Unbekannt";
-        }
-    }
+    const data = json.data;
 
-    // -------------------------
-    // LOADING STATE
-    // -------------------------
-    function showLoading() {
-        result.innerHTML = `
-            <div class="card">
-                <div style="height:240px;background:#222;animation:pulse 1.2s infinite;"></div>
-                <div class="content">
-                    <div class="title">Lade Produkt…</div>
-                    <div class="meta">Bitte warten</div>
-                </div>
-            </div>
+    document.getElementById("title").innerText = data.name;
 
-            <style>
-            @keyframes pulse {
-                0% { opacity: 0.4; }
-                50% { opacity: 0.7; }
-                100% { opacity: 0.4; }
-            }
-            </style>
-        `;
-    }
+    document.getElementById("image").src =
+        `/api/image?url=${encodeURIComponent(data.image)}`;
 
-    // -------------------------
-    // MAIN SEARCH
-    // -------------------------
-    async function search() {
+    document.getElementById("price-setdb").innerText =
+        data.setdb.price ? data.setdb.price + " €" : "-";
 
-        const id = input.value.trim();
-        if (!id) return;
+    document.getElementById("price-bluebrixx").innerText =
+        data.bluebrixx.price ? data.bluebrixx.price + " €" : "-";
 
-        showLoading();
+    document.getElementById("status").innerText =
+        data.bluebrixx.status ?? "-";
 
-        try {
-            const res = await fetch(`/api/search/${id}`);
-            const data = await res.json();
+    document.getElementById("info").innerHTML = `
+        <div class="info-grid">
 
-            if (!data.success) {
-                result.innerHTML = `
-                    <div class="card">
-                        <div class="content">
-                            <div class="title">Fehler</div>
-                            <div class="meta">${data.error || "Unbekannter Fehler"}</div>
-                        </div>
-                    </div>
-                `;
-                return;
-            }
+            <div>EAN: <b>${data.ean ?? "-"}</b></div>
+            <div>Teile: <b>${data.parts ?? "-"}</b></div>
+            <div>Minifiguren: <b>${data.minifigures ?? "-"}</b></div>
+            <div>Alter: <b>${data.age ?? "-"}</b></div>
+            <div>Maße: <b>${data.dimensions ?? "-"}</b></div>
+            <div>Gewicht: <b>${data.weight ?? "-"}</b></div>
+            <div>Jahr: <b>${data.year ?? "-"}</b></div>
+            <div>Thema: <b>${data.theme ?? "-"}</b></div>
+            <div>Bewertung: <b>${data.rating ?? "-"}</b></div>
 
-            const p = data.data;
+            <div>Preis/Stein: <b>${data.pricePerPart ?? "-"}</b></div>
 
-            result.innerHTML = `
-                <div class="card">
+        </div>
 
-                    <img src="/api/image?url=${encodeURIComponent(p.image)}">
+        <div class="button-row">
 
-                    <div class="content">
+            <a class="btn primary" href="${data.setdb?.url ?? '#'}" target="_blank">
+                📚 In SetDB öffnen
+            </a>
 
-                        <div class="title">${p.name || "Unbekannt"}</div>
-                        <div class="meta">
-                            Hersteller: ${p.manufacturer || "-"}<br>
-                            Artikelnummer: ${p.id}
-                        </div>
+            <a class="btn secondary" href="${data.bluebrixx?.url ?? '#'}" target="_blank">
+                🛒 Bei BlueBrixx öffnen
+            </a>
 
-                        <div class="price-row">
-                            <div>
-                                <div class="price-label">SetDB</div>
-                                <div class="price-value">${formatPrice(p.setdb?.price)}</div>
-                            </div>
-
-                            <div>
-                                <div class="price-label">BlueBrixx</div>
-                                <div class="price-value">${formatPrice(p.bluebrixx?.price)}</div>
-                            </div>
-                        </div>
-
-                        <div class="status" style="
-                            margin-top:12px;
-                            background: ${
-                                p.bluebrixx?.status === "available" ? "rgba(0,255,100,0.15)" :
-                                p.bluebrixx?.status === "soon" ? "rgba(255,200,0,0.15)" :
-                                p.bluebrixx?.status === "out" ? "rgba(255,0,0,0.15)" :
-                                "rgba(255,255,255,0.05)"
-                            };
-                            color: ${
-                                p.bluebrixx?.status === "available" ? "#3cff88" :
-                                p.bluebrixx?.status === "soon" ? "#ffd24d" :
-                                p.bluebrixx?.status === "out" ? "#ff5c5c" :
-                                "#9aa3b2"
-                            };
-                            padding:6px 10px;
-                            border-radius:8px;
-                            display:inline-block;
-                        ">
-                            ${getStatusClass(p.bluebrixx?.status)}
-                        </div>
-
-                    </div>
-                </div>
-            `;
-
-        } catch (err) {
-            result.innerHTML = `
-                <div class="card">
-                    <div class="content">
-                        <div class="title">Netzwerkfehler</div>
-                        <div class="meta">${err.message}</div>
-                    </div>
-                </div>
-            `;
-        }
-    }
-
-    // -------------------------
-    // EVENTS
-    // -------------------------
-    btn.addEventListener("click", search);
-
-    input.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") search();
-    });
-
-});
+        </div>
+    `;
+}
