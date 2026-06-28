@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Arons BrickBot</title>
 
-    <link rel="stylesheet" href="style.css"/>
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
@@ -14,33 +14,67 @@
 
     <div class="card">
 
-        <h1 id="title">Arons BrickBot</h1>
+        <!-- APP HEADER (Mini Upgrade #2) -->
+        <div class="topbar">
 
-        <input id="articleInput"
-               type="text"
-               placeholder="Artikelnummer eingeben (z.B. 108712)" />
+            <div>
+                <h2 style="margin:0;">🧱 Arons BrickBot</h2>
+                <small style="opacity:0.7;">Set Preis & Vergleich Tool</small>
+            </div>
 
-        <button onclick="loadProduct(document.getElementById('articleInput').value)">
-            🔍 Suchen
-        </button>
+            <button onclick="toggleTheme()">
+                🌓 Theme
+            </button>
 
-        <div style="margin-top:20px;">
-            <img id="image" />
         </div>
 
-        <div style="margin-top:20px;">
-            <div>SetDB: <b id="price-setdb">-</b></div>
-            <div>BlueBrixx: <b id="price-bluebrixx">-</b></div>
-            <div>Status: <b id="status">-</b></div>
+        <hr style="opacity:0.1;">
+
+        <!-- SEARCH BAR -->
+        <div style="display:flex; gap:10px; margin-top:10px;">
+
+            <input id="articleInput"
+                   type="text"
+                   placeholder="Artikelnummer (z.B. 108712)">
+
+            <button onclick="loadProduct(document.getElementById('articleInput').value)">
+                🔍
+            </button>
+
         </div>
 
+        <!-- PRICE BOX -->
+        <div class="price-box">
+
+            <div>
+                SetDB<br>
+                <b id="price-setdb">-</b>
+            </div>
+
+            <div>
+                BlueBrixx<br>
+                <b id="price-bluebrixx">-</b>
+            </div>
+
+            <div>
+                Status<br>
+                <b id="status">-</b>
+            </div>
+
+        </div>
+
+        <!-- IMAGE -->
+        <div style="text-align:center; margin-top:15px;">
+            <img id="image" style="max-width:400px; border-radius:12px;">
+        </div>
+
+        <!-- INFO AREA -->
         <div id="info" style="margin-top:20px;"></div>
 
     </div>
 
 </div>
 
-<!-- 🔥 WICHTIG: APP.JS MUSS LADEN -->
 <script src="app.js"></script>
 
 </body>
