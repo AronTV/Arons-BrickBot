@@ -1,16 +1,31 @@
 
+function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.innerText = value ?? "-";
+}
+
+function setImg(id, src) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.src = src || "";
+}
+
+/* =========================
+   MAIN LOAD FUNCTION
+========================= */
+
 async function loadProduct(id) {
 
-    console.log("👉 loadProduct:", id);
+    console.log("👉 LOAD PRODUCT:", id);
 
     const info = document.getElementById("info");
 
     if (!info) {
-        console.error("❌ #info fehlt");
+        console.error("❌ #info fehlt im HTML");
         return;
     }
 
-    info.innerHTML = "⏳ Lade...";
+    info.innerHTML = "⏳ Lade Produkt...";
 
     let json;
 
@@ -18,25 +33,71 @@ async function loadProduct(id) {
         const res = await fetch(`/api/search/${id}`);
         json = await res.json();
 
-        console.log("RAW RESPONSE:", json);
+        console.log("🔴 RAW RESPONSE:", json);
 
         if (!json?.success) {
-            info.innerHTML = "❌ Keine Daten";
+            info.innerHTML = "❌ Keine Daten erhalten";
             return;
         }
 
     } catch (err) {
-        console.error(err);
-        info.innerHTML = "❌ Server Error";
+        console.error("❌ FETCH ERROR:", err);
+        info.innerHTML = "❌ Server nicht erreichbar";
         return;
     }
 
-    const data = json.data || {};
+    const data = json?.data || {};
 
-    console.log("DATA:", data);
+    console.log("🟡 DATA OBJECT:", data);
+    console.log("🟢 IMAGE FIELD:", data?.image);
 
     /* =========================
-       SAFE RENDER (NO DOM DEPENDENCIES)
+       TITLE
+    ========================= */
+
+    setText("title", data.name || `Set ${id}`);
+
+    /* =========================
+       IMAGE (100% SAFE FIX)
+    ========================= */
+
+    const imageUrl = (data?.image && data.image.trim() !== "")
+        ? data.image
+        : null;
+
+    console.log("🧪 FINAL IMAGE URL:", imageUrl);
+
+    if (imageUrl) {
+        setImg(
+            "image",
+            `/api/image?url=${encodeURIComponent(imageUrl)}`
+        );
+    } else {
+        console.warn("⚠️ Kein Bild vorhanden für:", id);
+        setImg("image", "");
+    }
+
+    /* =========================
+       PRICES
+    ========================= */
+
+    setText(
+        "price-setdb",
+        data.setdb?.price ? `${data.setdb.price} €` : "-"
+    );
+
+    setText(
+        "price-bluebrixx",
+        data.bluebrixx?.price ? `${data.bluebrixx.price} €` : "-"
+    );
+
+    setText(
+        "status",
+        data.bluebrixx?.status || "-"
+    );
+
+    /* =========================
+       INFO GRID
     ========================= */
 
     info.innerHTML = `
@@ -45,12 +106,11 @@ async function loadProduct(id) {
             <h2>${data.name || `Set ${id}`}</h2>
 
             <img
-                src="/api/image?url=${encodeURIComponent(data.image || "")}"
-                style="max-width:100%; border-radius:12px;"
+                src="${imageUrl ? `/api/image?url=${encodeURIComponent(imageUrl)}` : ""}"
+                style="width:100%; max-width:420px; border-radius:16px; margin-top:15px;"
             />
 
             <div class="price-box">
-
                 <div>
                     <b>SetDB</b><br>
                     ${data.setdb?.price ? data.setdb.price + " €" : "-"}
@@ -65,7 +125,6 @@ async function loadProduct(id) {
                     <b>Status</b><br>
                     ${data.bluebrixx?.status || "-"}
                 </div>
-
             </div>
 
             <div class="info-grid">
