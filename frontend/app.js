@@ -10,29 +10,12 @@ function setImg(id, src) {
 }
 
 /* =========================
-   URL CLEANER (WICHTIG FIX)
-========================= */
-
-function safeUrl(url) {
-
-    if (!url) return null;
-
-    try {
-        const parsed = new URL(url);
-        return parsed.href;
-    } catch (e) {
-        console.warn("❌ Invalid URL blocked:", url);
-        return null;
-    }
-}
-
-/* =========================
    LOAD PRODUCT
 ========================= */
 
 async function loadProduct(id) {
 
-    console.log("👉 loadProduct:", id);
+    console.log("👉 loadProduct gestartet:", id);
 
     const info = document.getElementById("info");
 
@@ -44,9 +27,14 @@ async function loadProduct(id) {
 
         console.log("RAW RESPONSE:", json);
 
+        if (!res.ok) {
+            info.innerHTML = "❌ HTTP Fehler: " + res.status;
+            return;
+        }
+
     } catch (err) {
         console.error(err);
-        info.innerHTML = "❌ Server Fehler";
+        info.innerHTML = "❌ Server nicht erreichbar";
         return;
     }
 
@@ -60,11 +48,18 @@ async function loadProduct(id) {
     console.log("DATA:", data);
 
     /* =========================
-       BASIC UI
+       UI BASIC
     ========================= */
 
     setText("title", data.name);
-    setImg("image", data.image || "");
+
+    /* ✅ FIX: IMAGE ÜBER PROXY (WICHTIG) */
+    setImg(
+        "image",
+        data.image
+            ? `/api/image?url=${encodeURIComponent(data.image)}`
+            : ""
+    );
 
     setText("price-setdb",
         data.setdb?.price ? `${data.setdb.price} €` : "-"
@@ -77,16 +72,6 @@ async function loadProduct(id) {
     setText("status",
         data.bluebrixx?.status || "-"
     );
-
-    /* =========================
-       SAFE URLS (FIX CORE)
-    ========================= */
-
-    const setdbUrl = safeUrl(data.setdb?.url);
-    const blueUrl = safeUrl(data.bluebrixx?.url);
-
-    console.log("SETDB URL:", setdbUrl);
-    console.log("BLUE URL:", blueUrl);
 
     /* =========================
        INFO GRID
@@ -110,14 +95,14 @@ async function loadProduct(id) {
 
         <div class="button-row">
 
-            ${setdbUrl ? `
-                <a class="btn primary" target="_blank" href="${setdbUrl}">
+            ${data.setdb?.url ? `
+                <a class="btn primary" target="_blank" href="${data.setdb.url}">
                     📚 In SetDB öffnen
                 </a>
             ` : ""}
 
-            ${blueUrl ? `
-                <a class="btn secondary" target="_blank" href="${blueUrl}">
+            ${data.bluebrixx?.url ? `
+                <a class="btn secondary" target="_blank" href="${data.bluebrixx.url}">
                     🛒 Bei BlueBrixx öffnen
                 </a>
             ` : ""}
@@ -131,8 +116,8 @@ async function loadProduct(id) {
 ========================= */
 
 function toggleTheme() {
-    const isLight = document.body.classList.toggle("light");
-    localStorage.setItem("theme", isLight ? "light" : "dark");
+    const light = document.body.classList.toggle("light");
+    localStorage.setItem("theme", light ? "light" : "dark");
 }
 
 /* =========================

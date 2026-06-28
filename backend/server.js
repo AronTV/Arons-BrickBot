@@ -10,14 +10,12 @@ const app = express();
 app.use(express.static(path.join(__dirname, "../frontend")));
 
 /* =========================
-   MOCK / SCRAPER PLACEHOLDER
-   (HIER kommt dein echter Scraper rein)
+   MOCK / SCRAPER (DEIN ECHTES SYSTEM HIER EINBAUEN)
 ========================= */
 
 async function fetchProductData(id) {
-
-    // 👉 Beispielstruktur (ersetze durch echten Scraper)
     return {
+        id,
         name: "BlueBrixx - Burg Blaustein | Set 108712",
 
         ean: "4060904020913",
@@ -27,7 +25,7 @@ async function fetchProductData(id) {
         dimensions: "406 x 398 x 295 mm",
         weight: "4 kg",
         year: 2024,
-        theme: "BlueBrixx Pro",
+        theme: "BlueBrixx",
         rating: 4.7,
 
         pricePerPart: (199.95 / 5327).toFixed(3),
@@ -42,7 +40,7 @@ async function fetchProductData(id) {
         bluebrixx: {
             price: 199.95,
             status: "available",
-            url: "https://www.bluebrixx.com/..."
+            url: "https://www.bluebrixx.com/"
         }
     };
 }
@@ -52,34 +50,8 @@ async function fetchProductData(id) {
 ========================= */
 
 app.get("/api/search/:id", async (req, res) => {
-
     try {
-        const raw = await fetchProductData(req.params.id);
-
-        /* =========================
-           NORMALIZER (WICHTIG!)
-        ========================= */
-
-        const data = {
-            name: raw.name || "-",
-
-            ean: raw.ean || "-",
-            parts: raw.parts || "-",
-            minifigures: raw.minifigures || "-",
-            age: raw.age || "-",
-            dimensions: raw.dimensions || "-",
-            weight: raw.weight || "-",
-            year: raw.year || "-",
-            theme: raw.theme || "-",
-            rating: raw.rating || "-",
-
-            pricePerPart: raw.pricePerPart || "-",
-
-            image: raw.image || null,
-
-            setdb: raw.setdb || {},
-            bluebrixx: raw.bluebrixx || {}
-        };
+        const data = await fetchProductData(req.params.id);
 
         res.json({
             success: true,
@@ -88,11 +60,43 @@ app.get("/api/search/:id", async (req, res) => {
 
     } catch (err) {
         console.error(err);
-
         res.status(500).json({
             success: false,
             error: "server_error"
         });
+    }
+});
+
+/* =========================
+   IMAGE PROXY (FIX FÜR CORS / CDN BLOCKS)
+========================= */
+
+app.get("/api/image", async (req, res) => {
+
+    const url = req.query.url;
+
+    if (!url) {
+        return res.status(400).send("Missing image url");
+    }
+
+    try {
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            return res.status(404).send("Image not found");
+        }
+
+        const contentType = response.headers.get("content-type");
+
+        res.setHeader("Content-Type", contentType || "image/jpeg");
+        res.setHeader("Cache-Control", "public, max-age=86400");
+
+        const buffer = await response.arrayBuffer();
+        res.send(Buffer.from(buffer));
+
+    } catch (err) {
+        console.error("IMAGE PROXY ERROR:", err);
+        res.status(500).send("Image load error");
     }
 });
 
