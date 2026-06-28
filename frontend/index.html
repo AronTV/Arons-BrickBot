@@ -1,188 +1,117 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+async function loadProduct(id) {
 
-<title>Arons BrickBot</title>
+    const res = await fetch(`/api/search/${id}`);
+    const json = await res.json();
 
-<!-- PWA -->
-<link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#3aa0ff">
+    const info = document.getElementById("info");
+    const title = document.getElementById("title");
+    const image = document.getElementById("image");
+    const priceSetdb = document.getElementById("price-setdb");
+    const priceBluebrixx = document.getElementById("price-bluebrixx");
+    const status = document.getElementById("status");
+    const input = document.getElementById("articleInput");
 
-<script>
-if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("/sw.js");
+    if (!json.success) {
+        info.innerHTML = "❌ Produkt nicht gefunden";
+        return;
+    }
+
+    const data = json.data;
+
+    /* =========================
+       BASIC DATA
+    ========================= */
+
+    title.innerText = data.name ?? "-";
+
+    image.src = data.image
+        ? `/api/image?url=${encodeURIComponent(data.image)}`
+        : "";
+
+    priceSetdb.innerText =
+        data.setdb?.price ? `${data.setdb.price} €` : "-";
+
+    priceBluebrixx.innerText =
+        data.bluebrixx?.price ? `${data.bluebrixx.price} €` : "-";
+
+    status.innerText =
+        data.bluebrixx?.status ?? "-";
+
+    /* =========================
+       EXTRA INFO
+    ========================= */
+
+    const extraInfo = `
+    <div class="info-grid">
+
+        <div>EAN: <b>${data.ean ?? "-"}</b></div>
+        <div>Teileanzahl: <b>${data.parts ?? "-"}</b></div>
+        <div>Minifiguren: <b>${data.minifigures ?? "-"}</b></div>
+        <div>Altersempfehlung: <b>${data.age ?? "-"}</b></div>
+        <div>Maße: <b>${data.dimensions ?? "-"}</b></div>
+        <div>Gewicht: <b>${data.weight ?? "-"}</b></div>
+        <div>Erscheinungsjahr: <b>${data.year ?? "-"}</b></div>
+        <div>Themenwelt/Serie: <b>${data.theme ?? "-"}</b></div>
+        <div>Bewertung: <b>${data.rating ?? "-"}</b></div>
+
+        <div>Preis/Stein: <b>${data.pricePerPart ?? "-"}</b></div>
+
+    </div>
+    `;
+
+    /* =========================
+       BUTTONS
+    ========================= */
+
+    const buttons = `
+    <div class="button-row">
+
+        ${data.setdb?.url ? `
+            <a class="btn primary" target="_blank"
+               href="${data.setdb.url}">
+               📚 In SetDB öffnen
+            </a>
+        ` : ""}
+
+        ${data.bluebrixx?.url ? `
+            <a class="btn secondary" target="_blank"
+               href="${data.bluebrixx.url}">
+               🛒 Bei BlueBrixx öffnen
+            </a>
+        ` : ""}
+
+    </div>
+    `;
+
+    /* =========================
+       RENDER
+    ========================= */
+
+    info.innerHTML = extraInfo + buttons;
+
+    /* =========================
+       INPUT CLEANUP (BONUS)
+    ========================= */
+
+    if (input) {
+        input.value = "";
+    }
 }
-</script>
 
-<style>
-    :root {
-        --bg: #0f1115;
-        --card: #171a21;
-        --accent: #3aa0ff;
-        --text: #e8eaf0;
-        --muted: #9aa3b2;
-        --border: rgba(255,255,255,0.08);
-    }
+/* =========================
+   ENTER KEY SUPPORT (BONUS FIX)
+========================= */
 
-    * {
-        box-sizing: border-box;
-        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
-    }
+document.addEventListener("DOMContentLoaded", () => {
 
-    body {
-        margin: 0;
-        background: radial-gradient(circle at top, #1a1f2a, var(--bg));
-        color: var(--text);
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
+    const input = document.getElementById("articleInput");
 
-    header {
-        width: 100%;
-        padding: 24px;
-        text-align: center;
-        font-size: 22px;
-        font-weight: 800;
-        letter-spacing: 0.5px;
-        border-bottom: 1px solid var(--border);
-        background: rgba(0,0,0,0.2);
-        backdrop-filter: blur(10px);
-    }
+    if (!input) return;
 
-    .search-box {
-        margin-top: 40px;
-        display: flex;
-        gap: 10px;
-    }
+    input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+            loadProduct(input.value);
+        }
+    });
 
-    input {
-        width: 260px;
-        padding: 12px 14px;
-        border-radius: 10px;
-        border: 1px solid var(--border);
-        background: var(--card);
-        color: var(--text);
-        outline: none;
-    }
-
-    input:focus {
-        border-color: var(--accent);
-    }
-
-    button {
-        padding: 12px 18px;
-        border-radius: 10px;
-        border: none;
-        background: var(--accent);
-        color: white;
-        font-weight: 600;
-        cursor: pointer;
-        transition: 0.2s;
-    }
-
-    button:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 8px 20px rgba(58,160,255,0.3);
-    }
-
-    .card {
-        margin-top: 30px;
-        width: 360px;
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.4);
-        animation: fadeIn 0.3s ease;
-    }
-
-    .card img {
-        width: 100%;
-        height: 240px;
-        object-fit: cover;
-        background: #111;
-    }
-
-    .content {
-        padding: 16px;
-    }
-
-    .title {
-        font-size: 18px;
-        font-weight: 800;
-        margin-bottom: 6px;
-    }
-
-    .meta {
-        font-size: 13px;
-        color: var(--muted);
-        margin-bottom: 12px;
-    }
-
-    .price-row {
-        display: flex;
-        justify-content: space-between;
-        margin-top: 10px;
-        padding: 10px;
-        background: rgba(255,255,255,0.03);
-        border-radius: 10px;
-    }
-
-    .price-label {
-        color: var(--muted);
-        font-size: 12px;
-    }
-
-    .price-value {
-        font-weight: 700;
-        color: var(--text);
-    }
-
-    .status {
-        margin-top: 10px;
-        font-size: 12px;
-        padding: 6px 10px;
-        border-radius: 8px;
-        display: inline-block;
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    footer {
-        margin-top: auto;
-        padding: 20px;
-        font-size: 12px;
-        color: var(--muted);
-    }
-</style>
-
-</head>
-
-<body>
-
-<header>
-    🧱 Arons BrickBot
-</header>
-
-<div class="search-box">
-    <input id="input" placeholder="Artikelnummer (z.B. 108712)">
-    <button id="btn">Suchen</button>
-</div>
-
-<div id="result"></div>
-
-<footer>
-    PWA Version • Brick Intelligence System
-</footer>
-
-<script src="app.js"></script>
-
-</body>
-</html>
+});
