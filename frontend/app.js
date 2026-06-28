@@ -1,9 +1,6 @@
 async function loadProduct(id) {
 
-    const res = await fetch(`/api/search/${id}`);
-    const json = await res.json();
-
-    console.log("FULL RESPONSE:", json);
+    console.log("👉 loadProduct gestartet mit ID:", id);
 
     const info = document.getElementById("info");
     const title = document.getElementById("title");
@@ -14,37 +11,74 @@ async function loadProduct(id) {
     const input = document.getElementById("articleInput");
 
     /* =========================
-       HARD FAIL SAFE
+       FETCH
     ========================= */
 
-    if (!json || json.success !== true || !json.data) {
-        info.innerHTML = "❌ Backend liefert keine gültigen Daten";
+    let res, json;
+
+    try {
+        res = await fetch(`/api/search/${id}`);
+        json = await res.json();
+    } catch (err) {
+        console.error("FETCH ERROR:", err);
+        info.innerHTML = "❌ Netzwerk-/Serverfehler";
         return;
     }
 
-    const data = json.data || {};
+    console.log("👉 RESPONSE STATUS:", res.status);
+    console.log("👉 RAW RESPONSE JSON:", json);
 
     /* =========================
-       BASIC UI SAFE RENDER
+       HARD CHECKS
     ========================= */
 
-    title.innerText = data.name || "-";
+    if (!res.ok) {
+        info.innerHTML = "❌ HTTP Fehler: " + res.status;
+        return;
+    }
+
+    if (!json) {
+        info.innerHTML = "❌ Kein JSON erhalten";
+        return;
+    }
+
+    if (json.success !== true) {
+        info.innerHTML = "❌ success = false";
+        console.log("❌ Backend Fehlerobjekt:", json);
+        return;
+    }
+
+    if (!json.data) {
+        info.innerHTML = "❌ data ist leer oder null";
+        console.log("❌ DATA FEHLT:", json);
+        return;
+    }
+
+    const data = json.data;
+
+    console.log("👉 DATA OK:", data);
+
+    /* =========================
+       BASIC UI
+    ========================= */
+
+    title.innerText = data.name || "NO NAME";
 
     image.src = data.image
         ? `/api/image?url=${encodeURIComponent(data.image)}`
         : "";
 
     priceSetdb.innerText =
-        data.setdb?.price != null ? `${data.setdb.price} €` : "-";
+        data?.setdb?.price != null ? `${data.setdb.price} €` : "-";
 
     priceBluebrixx.innerText =
-        data.bluebrixx?.price != null ? `${data.bluebrixx.price} €` : "-";
+        data?.bluebrixx?.price != null ? `${data.bluebrixx.price} €` : "-";
 
     status.innerText =
-        data.bluebrixx?.status || "-";
+        data?.bluebrixx?.status || "-";
 
     /* =========================
-       EXTRA INFO SAFE GRID
+       EXTRA INFO
     ========================= */
 
     const extraInfo = `
@@ -66,11 +100,11 @@ async function loadProduct(id) {
     `;
 
     /* =========================
-       SAFE BUTTONS (CRASH PROOF)
+       BUTTONS
     ========================= */
 
-    const setdbUrl = data?.setdb?.url || null;
-    const blueUrl = data?.bluebrixx?.url || null;
+    const setdbUrl = data?.setdb?.url;
+    const blueUrl = data?.bluebrixx?.url;
 
     const buttons = `
     <div class="button-row">
@@ -79,48 +113,55 @@ async function loadProduct(id) {
             <a class="btn primary" target="_blank" href="${setdbUrl}">
                 📚 In SetDB öffnen
             </a>
-        ` : `
-            <span></span>
-        `}
+        ` : `<span style="color:#999">kein SetDB Link</span>`}
 
         ${blueUrl ? `
             <a class="btn secondary" target="_blank" href="${blueUrl}">
                 🛒 Bei BlueBrixx öffnen
             </a>
-        ` : `
-            <span></span>
-        `}
+        ` : `<span style="color:#999">kein BlueBrixx Link</span>`}
 
     </div>
     `;
 
     /* =========================
-       FINAL RENDER (NO BREAKS POSSIBLE)
+       FINAL RENDER
     ========================= */
 
-    info.innerHTML = extraInfo + buttons;
+    info.innerHTML = `
+        <div style="background:#fff;padding:10px;border-radius:8px;">
+            <b>DEBUG OUTPUT:</b><br><br>
+            ${extraInfo}
+            <hr>
+            ${buttons}
+            <hr>
+            <pre>${JSON.stringify(data, null, 2)}</pre>
+        </div>
+    `;
 
     /* =========================
-       INPUT RESET SAFE
+       RESET INPUT
     ========================= */
 
     if (input) input.value = "";
 }
 
 /* =========================
-   ENTER KEY SUPPORT (STABLE)
+   ENTER SUPPORT
 ========================= */
 
 document.addEventListener("DOMContentLoaded", () => {
 
     const input = document.getElementById("articleInput");
 
-    if (!input) return;
+    if (!input) {
+        console.warn("articleInput fehlt im HTML");
+        return;
+    }
 
     input.addEventListener("keydown", (e) => {
         if (e.key === "Enter") {
             loadProduct(input.value);
         }
     });
-
 });
