@@ -3,51 +3,90 @@ async function loadProduct(id) {
     const res = await fetch(`/api/search/${id}`);
     const json = await res.json();
 
-    if (!json.success) return;
+    const info = document.getElementById("info");
+    const title = document.getElementById("title");
+    const image = document.getElementById("image");
+    const priceSetdb = document.getElementById("price-setdb");
+    const priceBluebrixx = document.getElementById("price-bluebrixx");
+    const status = document.getElementById("status");
+
+    if (!json.success) {
+        info.innerHTML = "❌ Produkt nicht gefunden";
+        return;
+    }
 
     const data = json.data;
 
-    document.getElementById("title").innerText = data.name;
+    /* =========================
+       BASIC DATA
+    ========================= */
 
-    document.getElementById("image").src =
-        `/api/image?url=${encodeURIComponent(data.image)}`;
+    title.innerText = data.name ?? "-";
 
-    document.getElementById("price-setdb").innerText =
-        data.setdb.price ? data.setdb.price + " €" : "-";
+    image.src = data.image
+        ? `/api/image?url=${encodeURIComponent(data.image)}`
+        : "";
 
-    document.getElementById("price-bluebrixx").innerText =
-        data.bluebrixx.price ? data.bluebrixx.price + " €" : "-";
+    priceSetdb.innerText =
+        data.setdb?.price ? `${data.setdb.price} €` : "-";
 
-    document.getElementById("status").innerText =
-        data.bluebrixx.status ?? "-";
+    priceBluebrixx.innerText =
+        data.bluebrixx?.price ? `${data.bluebrixx.price} €` : "-";
 
-    document.getElementById("info").innerHTML = `
-        <div class="info-grid">
+    status.innerText =
+        data.bluebrixx?.status ?? "-";
 
-            <div>EAN: <b>${data.ean ?? "-"}</b></div>
-            <div>Teile: <b>${data.parts ?? "-"}</b></div>
-            <div>Minifiguren: <b>${data.minifigures ?? "-"}</b></div>
-            <div>Alter: <b>${data.age ?? "-"}</b></div>
-            <div>Maße: <b>${data.dimensions ?? "-"}</b></div>
-            <div>Gewicht: <b>${data.weight ?? "-"}</b></div>
-            <div>Jahr: <b>${data.year ?? "-"}</b></div>
-            <div>Thema: <b>${data.theme ?? "-"}</b></div>
-            <div>Bewertung: <b>${data.rating ?? "-"}</b></div>
+    /* =========================
+       EXTRA INFO GRID
+    ========================= */
 
-            <div>Preis/Stein: <b>${data.pricePerPart ?? "-"}</b></div>
+    const extraInfo = `
+    <div class="info-grid">
 
-        </div>
+        <div>EAN: <b>${data.ean ?? "-"}</b></div>
+        <div>Teileanzahl: <b>${data.parts ?? "-"}</b></div>
+        <div>Minifiguren: <b>${data.minifigures ?? "-"}</b></div>
+        <div>Altersempfehlung: <b>${data.age ?? "-"}</b></div>
+        <div>Maße: <b>${data.dimensions ?? "-"}</b></div>
+        <div>Gewicht: <b>${data.weight ?? "-"}</b></div>
+        <div>Erscheinungsjahr: <b>${data.year ?? "-"}</b></div>
+        <div>Themenwelt/Serie: <b>${data.theme ?? "-"}</b></div>
+        <div>Bewertung: <b>${data.rating ?? "-"}</b></div>
 
-        <div class="button-row">
+        <div>Preis/Stein: <b>${
+            data.pricePerPart ?? "-"
+        }</b></div>
 
-            <a class="btn primary" href="${data.setdb?.url ?? '#'}" target="_blank">
-                📚 In SetDB öffnen
-            </a>
-
-            <a class="btn secondary" href="${data.bluebrixx?.url ?? '#'}" target="_blank">
-                🛒 Bei BlueBrixx öffnen
-            </a>
-
-        </div>
+    </div>
     `;
+
+    /* =========================
+       BUTTONS (SAFE RENDER)
+    ========================= */
+
+    const buttons = `
+    <div class="button-row">
+
+        ${data.setdb?.url ? `
+            <a class="btn primary" target="_blank"
+               href="${data.setdb.url}">
+               📚 In SetDB öffnen
+            </a>
+        ` : ""}
+
+        ${data.bluebrixx?.url ? `
+            <a class="btn secondary" target="_blank"
+               href="${data.bluebrixx.url}">
+               🛒 Bei BlueBrixx öffnen
+            </a>
+        ` : ""}
+
+    </div>
+    `;
+
+    /* =========================
+       FINAL RENDER
+    ========================= */
+
+    info.innerHTML = extraInfo + buttons;
 }
