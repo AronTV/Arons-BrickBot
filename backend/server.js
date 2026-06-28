@@ -9,17 +9,23 @@ const app = express();
 
 app.use(express.json());
 
-// Frontend
+/* =========================
+   FRONTEND SERVING
+========================= */
 app.use(express.static(path.join(__dirname, "../frontend")));
 
 /* =========================
-   SEARCH API
+   SEARCH ROUTE
 ========================= */
-app.get("/api/search/:id", (req, res) => {
+app.get("/api/search/:id", async (req, res) => {
 
     const id = req.params.id;
 
-    db.get("SELECT * FROM products WHERE id = ?", [id], async (err, row) => {
+    try {
+        // 🔎 DB CHECK (sync - better-sqlite3)
+        const row = db.prepare(
+            "SELECT * FROM products WHERE id = ?"
+        ).get(id);
 
         if (row) {
             return res.json({
@@ -28,45 +34,63 @@ app.get("/api/search/:id", (req, res) => {
             });
         }
 
-        try {
-            const p = await fetchProduct(id);
+        // 🌐 SCRAPE / FETCH
+        const p = await fetchProduct(id);
 
-            db.run(`
-                INSERT OR REPLACE INTO products VALUES (?,?,?,?,?,?,?,?,?)
-            `, [
-                p.id,
-                p.name,
-                p.manufacturer,
-                p.image,
-                p.setdb.price,
-                p.setdb.url,
-                p.bluebrixx.price,
-                p.bluebrixx.url,
-                p.bluebrixx.status
-            ]);
+        // 💾 SAVE TO DB
+        db.prepare(`
+            INSERT OR REPLACE INTO products (
+                id,
+                name,
+                manufacturer,
+                image,
+                setdb_price,
+                setdb_url,
+                bluebrixx_price,
+                bluebrixx_url,
+                bluebrixx_status
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(
+            p.id,
+            p.name,
+            p.manufacturer,
+            p.image,
+            p.setdb.price,
+            p.setdb.url,
+            p.bluebrixx.price,
+            p.bluebrixx.url,
+            p.bluebrixx.status
+        );
 
-            res.json({ success: true, data: p });
+        return res.json({
+            success: true,
+            data: p
+        });
 
-        } catch (e) {
-            res.json({ success: false, error: e.message });
-        }
-    });
+    } catch (err) {
+        return res.json({
+            success: false,
+            error: err.message
+        });
+    }
 });
 
 /* =========================
-   IMAGE PROXY
+   IMAGE PROXY (fix CORS issues)
 ========================= */
 app.get("/api/image", async (req, res) => {
 
     try {
-        const img = await axios.get(req.query.url, {
+        const url = req.query.url;
+
+        const img = await axios.get(url, {
             responseType: "arraybuffer"
         });
 
-        res.set("Content-Type", "image/webp");
+        res.setHeader("Content-Type", "image/jpeg");
         res.send(img.data);
 
-    } catch {
+    } catch (err) {
         res.status(500).send("image error");
     }
 });
@@ -93,7 +117,7 @@ function normalize(row) {
 }
 
 /* =========================
-   🚀 RENDER FIX (WICHTIG)
+   RENDER SAFE START
 ========================= */
 const PORT = process.env.PORT || 3000;
 
