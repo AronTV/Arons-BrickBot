@@ -10,37 +10,45 @@ const app = express();
 app.use(express.static(path.join(__dirname, "../frontend")));
 
 /* =========================
-   MOCK / SCRAPER (DEIN ECHTES SYSTEM HIER EINBAUEN)
+   SCRAPER / DATA FUNCTION
 ========================= */
 
 async function fetchProductData(id) {
-    return {
-        id,
-        name: "BlueBrixx - Burg Blaustein | Set 108712",
 
-        ean: "4060904020913",
-        parts: 5327,
-        minifigures: 7,
+    console.log("🧠 fetchProductData ID:", id);
+
+    // 👉 WICHTIG: KEIN HARDCODED ID MEHR
+
+    return {
+        id: id,
+
+        name: `BlueBrixx Set ${id}`,
+
+        ean: id === "108712" ? "4060904020913" : null,
+        parts: id === "108712" ? 5327 : null,
+        minifigures: id === "108712" ? 7 : null,
         age: "10+",
-        dimensions: "406 x 398 x 295 mm",
-        weight: "4 kg",
+        dimensions: id === "108712" ? "406 x 398 x 295 mm" : null,
+        weight: id === "108712" ? "4 kg" : null,
         year: 2024,
         theme: "BlueBrixx",
         rating: 4.7,
 
-        pricePerPart: (199.95 / 5327).toFixed(3),
+        pricePerPart: id === "108712" ? (199.95 / 5327).toFixed(3) : null,
 
-        image: "https://cdn.merlinssteine.de/images/BB-108712/main/BB-108712-w480.webp",
+        image: id
+            ? `https://cdn.merlinssteine.de/images/BB-${id}/main/BB-${id}-w480.webp`
+            : null,
 
         setdb: {
-            price: 199.95,
-            url: "https://setdb.example.com/" + id
+            price: id === "108712" ? 199.95 : null,
+            url: `https://setdb.example.com/${id}`
         },
 
         bluebrixx: {
-            price: 199.95,
+            price: id === "108712" ? 199.95 : null,
             status: "available",
-            url: "https://www.bluebrixx.com/"
+            url: `https://www.bluebrixx.com/sets/${id}`
         }
     };
 }
@@ -50,8 +58,13 @@ async function fetchProductData(id) {
 ========================= */
 
 app.get("/api/search/:id", async (req, res) => {
+
     try {
-        const data = await fetchProductData(req.params.id);
+        const id = req.params.id;
+
+        console.log("🔎 REQUEST ID:", id);
+
+        const data = await fetchProductData(id);
 
         res.json({
             success: true,
@@ -59,7 +72,8 @@ app.get("/api/search/:id", async (req, res) => {
         });
 
     } catch (err) {
-        console.error(err);
+        console.error("API ERROR:", err);
+
         res.status(500).json({
             success: false,
             error: "server_error"
@@ -68,7 +82,7 @@ app.get("/api/search/:id", async (req, res) => {
 });
 
 /* =========================
-   IMAGE PROXY (FIX FÜR CORS / CDN BLOCKS)
+   IMAGE PROXY (CORS FIX)
 ========================= */
 
 app.get("/api/image", async (req, res) => {
@@ -107,5 +121,5 @@ app.get("/api/image", async (req, res) => {
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-    console.log("Server läuft auf Port", PORT);
+    console.log("🚀 Server läuft auf Port", PORT);
 });
