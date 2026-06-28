@@ -8,10 +8,12 @@ const { fetchProduct } = require("./setdb.service");
 const app = express();
 
 app.use(express.json());
+
+// Frontend
 app.use(express.static(path.join(__dirname, "../frontend")));
 
 /* =========================
-   SEARCH
+   SEARCH API
 ========================= */
 app.get("/api/search/:id", (req, res) => {
 
@@ -52,7 +54,7 @@ app.get("/api/search/:id", (req, res) => {
 });
 
 /* =========================
-   IMAGE PROXY (WICHTIG!)
+   IMAGE PROXY
 ========================= */
 app.get("/api/image", async (req, res) => {
 
@@ -70,7 +72,7 @@ app.get("/api/image", async (req, res) => {
 });
 
 /* =========================
-   NORMALIZE
+   NORMALIZE DB ROW
 ========================= */
 function normalize(row) {
     return {
@@ -90,4 +92,11 @@ function normalize(row) {
     };
 }
 
-app.listen(3000, () => console.log("V4 STABLE läuft"));
+/* =========================
+   🚀 RENDER FIX (WICHTIG)
+========================= */
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, "0.0.0.0", () => {
+    console.log("🧱 BrickBot läuft auf Port " + PORT);
+});
