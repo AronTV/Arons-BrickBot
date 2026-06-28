@@ -1,160 +1,52 @@
 
-function setText(id, value) {
-    const el = document.getElementById(id);
-    if (el) el.innerText = value ?? "-";
-}
-
-function setImg(id, src) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.src = src || "";
-}
-
-/* =========================
-   MAIN LOAD FUNCTION
-========================= */
-
 async function loadProduct(id) {
 
-    console.log("👉 LOAD PRODUCT:", id);
+    console.log("👉 LOAD:", id);
 
     const info = document.getElementById("info");
+    info.innerHTML = "⏳ Lade...";
 
-    if (!info) {
-        console.error("❌ #info fehlt im HTML");
-        return;
-    }
+    const res = await fetch(`/api/search/${id}`);
+    const json = await res.json();
 
-    info.innerHTML = "⏳ Lade Produkt...";
+    console.log("RAW:", json);
 
-    let json;
+    const data = json.data || {};
 
-    try {
-        const res = await fetch(`/api/search/${id}`);
-        json = await res.json();
-
-        console.log("🔴 RAW RESPONSE:", json);
-
-        if (!json?.success) {
-            info.innerHTML = "❌ Keine Daten erhalten";
-            return;
-        }
-
-    } catch (err) {
-        console.error("❌ FETCH ERROR:", err);
-        info.innerHTML = "❌ Server nicht erreichbar";
-        return;
-    }
-
-    const data = json?.data || {};
-
-    console.log("🟡 DATA OBJECT:", data);
-    console.log("🟢 IMAGE FIELD:", data?.image);
-
-    /* =========================
-       TITLE
-    ========================= */
-
-    setText("title", data.name || `Set ${id}`);
-
-    /* =========================
-       IMAGE (100% SAFE FIX)
-    ========================= */
-
-    const imageUrl = (data?.image && data.image.trim() !== "")
-        ? data.image
-        : null;
-
-    console.log("🧪 FINAL IMAGE URL:", imageUrl);
-
-    if (imageUrl) {
-        setImg(
-            "image",
-            `/api/image?url=${encodeURIComponent(imageUrl)}`
-        );
-    } else {
-        console.warn("⚠️ Kein Bild vorhanden für:", id);
-        setImg("image", "");
-    }
-
-    /* =========================
-       PRICES
-    ========================= */
-
-    setText(
-        "price-setdb",
-        data.setdb?.price ? `${data.setdb.price} €` : "-"
-    );
-
-    setText(
-        "price-bluebrixx",
-        data.bluebrixx?.price ? `${data.bluebrixx.price} €` : "-"
-    );
-
-    setText(
-        "status",
-        data.bluebrixx?.status || "-"
-    );
-
-    /* =========================
-       INFO GRID
-    ========================= */
+    const imageUrl = data.image;
 
     info.innerHTML = `
         <div class="card">
 
-            <h2>${data.name || `Set ${id}`}</h2>
+            <h2>${data.name || id}</h2>
 
-            <img
-                src="${imageUrl ? `/api/image?url=${encodeURIComponent(imageUrl)}` : ""}"
-                style="width:100%; max-width:420px; border-radius:16px; margin-top:15px;"
-            />
+            <img src="/api/image?url=${encodeURIComponent(imageUrl || "")}" />
 
             <div class="price-box">
-                <div>
-                    <b>SetDB</b><br>
-                    ${data.setdb?.price ? data.setdb.price + " €" : "-"}
-                </div>
-
-                <div>
-                    <b>BlueBrixx</b><br>
-                    ${data.bluebrixx?.price ? data.bluebrixx.price + " €" : "-"}
-                </div>
-
-                <div>
-                    <b>Status</b><br>
-                    ${data.bluebrixx?.status || "-"}
-                </div>
+                <div><b>Preis</b><br>${data.price || "-"}</div>
+                <div><b>Teile</b><br>${data.parts || "-"}</div>
+                <div><b>EAN</b><br>${data.ean || "-"}</div>
             </div>
 
             <div class="info-grid">
-
-                <div>EAN: <b>${data.ean || "-"}</b></div>
-                <div>Teile: <b>${data.parts || "-"}</b></div>
                 <div>Minifiguren: <b>${data.minifigures || "-"}</b></div>
                 <div>Alter: <b>${data.age || "-"}</b></div>
                 <div>Maße: <b>${data.dimensions || "-"}</b></div>
                 <div>Gewicht: <b>${data.weight || "-"}</b></div>
                 <div>Jahr: <b>${data.year || "-"}</b></div>
-                <div>Thema: <b>${data.theme || "-"}</b></div>
-                <div>Bewertung: <b>${data.rating || "-"}</b></div>
-                <div>Preis/Stein: <b>${data.pricePerPart || "-"}</b></div>
-
             </div>
 
             <div class="button-row">
 
-                ${data.setdb?.url ? `
-                    <a class="btn primary" target="_blank" href="${data.setdb.url}">
-                        📚 In SetDB öffnen
-                    </a>
-                ` : ""}
+                <a class="btn primary" target="_blank"
+                   href="${data.setdb?.url}">
+                   📚 Set ansehen
+                </a>
 
-                ${data.bluebrixx?.url ? `
-                    <a class="btn secondary" target="_blank" href="${data.bluebrixx.url}">
-                        🛒 Bei BlueBrixx öffnen
-                    </a>
-                ` : ""}
+                <a class="btn secondary" target="_blank"
+                   href="${data.bluebrixx?.url}">
+                   🛒 BlueBrixx
+                </a>
 
             </div>
 
