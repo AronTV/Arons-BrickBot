@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,53 +11,49 @@
 
 <body>
 
-<div class="container">
+    <div class="container">
 
-    <div class="card">
+        <div class="card">
 
-        <!-- HEADER -->
-        <div class="topbar">
-            <div>
-                <h2 style="margin:0;">🧱 Arons BrickBot</h2>
-                <small style="opacity:0.7;">Set Preis & Vergleich Tool</small>
+            <!-- =========================
+                 HEADER
+            ========================== -->
+
+            <div class="topbar">
+                <h2>🧱 Arons BrickBot</h2>
             </div>
 
-            <button onclick="toggleTheme()">🌓 Theme</button>
+            <!-- =========================
+                 SEARCH
+            ========================== -->
+
+            <div style="display:flex; gap:10px; margin-bottom:15px;">
+
+                <input
+                    id="input"
+                    type="text"
+                    placeholder="Artikelnummer eingeben (z.B. 108712)"
+                >
+
+                <button id="searchBtn">
+                    Suchen
+                </button>
+
+            </div>
+
+            <!-- =========================
+                 OUTPUT AREA
+            ========================== -->
+
+            <div id="info">
+                <p>🔎 Gib eine Artikelnummer ein</p>
+            </div>
+
         </div>
-
-        <hr style="opacity:0.1;">
-
-        <!-- SEARCH -->
-        <div style="display:flex; gap:10px;">
-            <input id="articleInput" type="text" placeholder="Artikelnummer (z.B. 108712)">
-            <button onclick="loadProduct(document.getElementById('articleInput').value)">
-                🔍
-            </button>
-        </div>
-
-        <!-- PRICE BOX -->
-        <div class="price-box">
-            <div>SetDB<br><b id="price-setdb">-</b></div>
-            <div>BlueBrixx<br><b id="price-bluebrixx">-</b></div>
-            <div>Status<br><b id="status">-</b></div>
-        </div>
-
-        <!-- IMAGE -->
-        <div style="text-align:center; margin-top:15px;">
-            <img id="image" style="max-width:400px; border-radius:12px;">
-        </div>
-
-        <!-- BASIC TITLE (optional duplicate safe) -->
-        <h3 id="title" style="margin-top:15px;">-</h3>
-
-        <!-- INFO GRID -->
-        <div id="info" style="margin-top:15px;"></div>
 
     </div>
 
-</div>
-
-<script src="app.js"></script>
+    <script src="app.js"></script>
 
 </body>
 </html>
